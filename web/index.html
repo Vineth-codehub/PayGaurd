@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PayGuard — Live revenue recovery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #08110e;
+      --panel: #10211b;
+      --panel-2: #0c1a15;
+      --line: #1e3a31;
+      --text: #e7f3ed;
+      --muted: #8aa99a;
+      --gold: #e0c07a;
+      --mint: #3ddc97;
+      --warn: #e8b86d;
+      --stop: #e07a7a;
+      --auto: #3ddc97;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font-family: Outfit, sans-serif; }
+    body {
+      min-height: 100vh;
+      background-image:
+        radial-gradient(1200px 500px at 10% -10%, #16352b 0%, transparent 55%),
+        linear-gradient(180deg, #08110e 0%, #0a1612 100%);
+    }
+    header {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      padding: 22px 28px 16px; border-bottom: 1px solid var(--line);
+    }
+    .brand { font-family: Fraunces, serif; font-size: 28px; letter-spacing: -0.03em; }
+    .brand span { color: var(--gold); }
+    .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .track {
+      font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--gold);
+      border: 1px solid #5c4a24; padding: 6px 10px; border-radius: 999px;
+    }
+    .wrap { padding: 18px 28px 40px; display: grid; gap: 16px; }
+    .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    button, select {
+      font-family: Outfit, sans-serif; cursor: pointer;
+      background: var(--gold); color: #1a1408; border: 0; font-weight: 600;
+      padding: 9px 14px; border-radius: 8px;
+    }
+    button.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+    .kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+    .card {
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+      border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+    }
+    .card h3 { margin: 0; font-size: 11px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
+    .card .n { font-family: Fraunces, serif; font-size: 26px; margin-top: 6px; }
+    .card .hint { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; }
+    .pipeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 12px; }
+    .step { border: 1px solid var(--line); border-radius: 10px; padding: 10px; min-height: 92px; background: #0b1814; }
+    .step b { display: block; font-size: 11px; color: var(--gold); font-family: "IBM Plex Mono", monospace; margin-bottom: 6px; }
+    .step p { margin: 0; font-size: 13px; line-height: 1.35; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; color: var(--muted); font-weight: 500; font-size: 11px; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+    td { padding: 8px 6px; border-bottom: 1px solid #162821; font-family: "IBM Plex Mono", monospace; font-size: 12px; }
+    tr { cursor: pointer; }
+    tr:hover { background: #143028; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10px; }
+    .AUTO { background: #163c2d; color: var(--mint); }
+    .APPROVAL_REQUIRED { background: #3a2e14; color: var(--warn); }
+    .BLOCKED { background: #3a1818; color: var(--stop); }
+    .BYPASS { background: #2a2438; color: #cbb8ff; }
+    .bars { display: grid; gap: 10px; margin-top: 10px; }
+    .bar-row { display: grid; grid-template-columns: 110px 1fr 90px; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); }
+    .bar { height: 10px; background: #14241e; border-radius: 99px; overflow: hidden; }
+    .bar > i { display: block; height: 100%; background: var(--mint); }
+    .bar.naive > i { background: var(--warn); }
+    .bar.none > i { background: #44554c; }
+    .tabs { display: flex; gap: 8px; }
+    .tabs button { padding: 7px 12px; }
+    .hidden { display: none; }
+    .detail { font-size: 13px; color: var(--muted); line-height: 1.5; }
+    .detail strong { color: var(--text); }
+    .progress { height: 6px; background: #14241e; border-radius: 99px; overflow: hidden; flex: 1; min-width: 160px; }
+    .progress > i { display: block; height: 100%; background: var(--gold); width: 0; }
+    @media (max-width: 1100px) {
+      .kpis, .grid, .pipeline { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 720px) {
+      .kpis, .grid, .pipeline { grid-template-columns: 1fr; }
+      header, .wrap { padding-left: 16px; padding-right: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="brand">Pay<span>Guard</span></div>
+      <div class="sub">Agentic revenue recovery — detect, gate, execute once, measure rupees won back.</div>
+    </div>
+    <div class="track">TRACK 03 · AI REVENUE RECOVERY</div>
+  </header>
+
+  <div class="wrap">
+    <div class="controls">
+      <button id="run80">Live run · 80</button>
+      <button id="run200" class="ghost">Full batch · 200</button>
+      <button id="stop" class="ghost">Pause</button>
+      <label class="sub">Pace
+        <select id="pace">
+          <option value="180">slow</option>
+          <option value="90" selected>demo</option>
+          <option value="25">fast</option>
+          <option value="0">instant</option>
+        </select>
+      </label>
+      <div class="progress" title="batch progress"><i id="prog"></i></div>
+      <span class="sub" id="progLabel">idle</span>
+      <div class="tabs" style="margin-left:auto">
+        <button class="ghost" id="tabLive">Live queue</button>
+        <button class="ghost" id="tabHard">Evidence cases</button>
+      </div>
+    </div>
+
+    <section class="kpis">
+      <div class="card"><h3>At risk</h3><div class="n" id="kpiRisk">—</div><div class="hint">this batch</div></div>
+      <div class="card"><h3>PayGuard recovered</h3><div class="n" id="kpiRec" style="color:var(--mint)">—</div><div class="hint" id="kpiRate">vs do-nothing = 0</div></div>
+      <div class="card"><h3>Naive retry-all</h3><div class="n" id="kpiNaive" style="color:var(--warn)">—</div><div class="hint">no policy, higher friction</div></div>
+      <div class="card"><h3>Auto</h3><div class="n" id="kpiAuto">0</div><div class="hint">executed under policy</div></div>
+      <div class="card"><h3>Human gate</h3><div class="n" id="kpiHuman" style="color:var(--warn)">0</div><div class="hint">approval required</div></div>
+      <div class="card"><h3>Stopped</h3><div class="n" id="kpiStop" style="color:var(--stop)">0</div><div class="hint">stopping rules fired</div></div>
+    </section>
+
+    <section id="livePane" class="grid">
+      <div class="card">
+        <h3>Current case</h3>
+        <div id="latestId" class="n" style="font-size:20px">Waiting to run</div>
+        <div class="pipeline">
+          <div class="step"><b>01 DETECT</b><p id="stDetect">Revenue at risk lands in the queue.</p></div>
+          <div class="step"><b>02 DECIDE</b><p id="stDecide">Intervention chooser picks an action.</p></div>
+          <div class="step"><b>03 GATE</b><p id="stGate">Policy: AUTO / APPROVAL / BLOCKED.</p></div>
+          <div class="step"><b>04 EXECUTE</b><p id="stExec">Only AUTO hits the gateway, once.</p></div>
+          <div class="step"><b>05 VERIFY</b><p id="stVerify">Outcome scored in rupees.</p></div>
+        </div>
+        <p class="detail" id="latestReason" style="margin-top:12px"></p>
+        <button class="ghost" id="dupBtn" style="margin-top:8px">Fire this webhook 5×</button>
+        <p class="detail" id="dupOut"></p>
+      </div>
+      <div class="card">
+        <h3>Recovered so far</h3>
+        <div class="bars" id="bars"></div>
+        <h3 style="margin-top:18px">By loss type</h3>
+        <div id="scenarios" class="detail"></div>
+        <h3 style="margin-top:18px">Stopping rules</h3>
+        <div class="detail">Retry cap 2 · auto amount ≤ 50,000 · max 2 contacts · unresponsive: stop after 1 · refunds &amp; escalations always human.</div>
+      </div>
+    </section>
+
+    <section id="queuePane" class="card">
+      <h3>Audit trail</h3>
+      <div style="max-height:420px; overflow:auto; margin-top:8px">
+        <table>
+          <thead>
+            <tr>
+              <th>Case</th><th>Type</th><th>Amount</th><th>Action</th><th>Verdict</th><th>Recovered</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="hardPane" class="card hidden">
+      <h3>Conflicting evidence — resolver</h3>
+      <p class="detail">Same 10 cases as the CLI. Refunds stay gated; a “double charge” is not refunded unless two captures actually exist.</p>
+      <button id="loadHard" style="margin:10px 0">Run 10 cases</button>
+      <div id="hardOut"></div>
+    </section>
+  </div>
+
+  <script>
+    const inr = (n) => n == null ? "—" : "₹" + Math.round(n).toLocaleString("en-IN");
+    let lastSeq = -1;
+    let selectedId = null;
+    let timer = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    async function post(url, body) {
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body || {}),
+      });
+      return r.json();
+    }
+
+    function verdictClass(v) { return v || ""; }
+
+    function render(s) {
+      if (s.seq === lastSeq) return;
+      lastSeq = s.seq;
+      const pg = (s.scoreboard || []).find(x => x.strategy === "payguard");
+      const naive = (s.scoreboard || []).find(x => x.strategy === "naive_retry_all");
+      $("kpiRisk").textContent = inr(s.amount_at_risk_batch);
+      $("kpiRec").textContent = pg ? inr(pg.amount_recovered) : "—";
+      $("kpiRate").textContent = pg ? (100 * pg.recovery_rate_inr).toFixed(1) + "% of processed at-risk" : "vs do-nothing = 0";
+      $("kpiNaive").textContent = naive ? inr(naive.amount_recovered) : "—";
+      $("kpiAuto").textContent = pg ? pg.auto_executed : 0;
+      $("kpiHuman").textContent = pg ? pg.approval_required : 0;
+      $("kpiStop").textContent = pg ? pg.stopped : 0;
+      const pct = s.total ? (100 * s.processed / s.total) : 0;
+      $("prog").style.width = pct + "%";
+      $("progLabel").textContent = s.running
+        ? (s.processed + " / " + s.total + " live")
+        : (s.done ? s.processed + " / " + s.total + " done" : "idle");
+
+      const maxRec = Math.max(
+        pg ? pg.amount_recovered : 0,
+        naive ? naive.amount_recovered : 0,
+        1
+      );
+      $("bars").innerHTML = [
+        bar("PayGuard", pg ? pg.amount_recovered : 0, maxRec, ""),
+        bar("Naive all", naive ? naive.amount_recovered : 0, maxRec, "naive"),
+        bar("Do nothing", 0, maxRec, "none"),
+      ].join("");
+
+      const sc = s.by_scenario || {};
+      $("scenarios").innerHTML = Object.keys(sc).length
+        ? Object.entries(sc).map(([k, v]) =>
+            `<div>${k.replaceAll("_", " ")} · n=${v.n} · at risk ${inr(v.at_risk)} · recovered ${inr(v.recovered)}</div>`
+          ).join("")
+        : "Run a batch to fill this.";
+
+      const latest = s.latest;
+      if (latest) {
+        selectedId = latest.case_id;
+        $("latestId").textContent = latest.case_id + " · " + inr(latest.amount_at_risk);
+        $("stDetect").textContent = (latest.scenario || "").replaceAll("_", " ") + " · " + latest.failure_reason;
+        $("stDecide").textContent = latest.decided_action;
+        $("stGate").textContent = latest.policy_verdict + " — " + latest.policy_reason;
+        $("stExec").textContent = latest.executed
+          ? ("gateway " + (latest.execution_path || "EXECUTED"))
+          : "not executed";
+        $("stVerify").textContent = latest.recovered
+          ? ("recovered " + inr(latest.recovered_amount))
+          : "not recovered this attempt";
+        $("latestReason").innerHTML =
+          `History <strong>${latest.customer_history || "—"}</strong> · attempts <strong>${latest.attempt_count}</strong> · ` +
+          `key <strong>${latest.idempotency_key}</strong>`;
+      }
+
+      const tb = $("tbody");
+      tb.innerHTML = (s.rows || []).map(r => `
+        <tr data-id="${r.case_id}">
+          <td>${r.case_id}</td>
+          <td>${(r.scenario || "").replaceAll("_", " ")}</td>
+          <td>${inr(r.amount_at_risk)}</td>
+          <td>${r.decided_action}</td>
+          <td><span class="pill ${verdictClass(r.policy_verdict)}">${r.policy_verdict}</span></td>
+          <td>${r.recovered ? inr(r.recovered_amount) : "—"}</td>
+        </tr>
+      `).join("");
+    }
+
+    function bar(label, val, max, cls) {
+      const w = Math.max(2, 100 * val / max);
+      return `<div class="bar-row"><span>${label}</span><div class="bar ${cls}"><i style="width:${w}%"></i></div><span>${inr(val)}</span></div>`;
+    }
+
+    async function tick() {
+      const s = await (await fetch("/api/state")).json();
+      render(s);
+      if (!s.running && timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    function startPoll() {
+      if (timer) clearInterval(timer);
+      timer = setInterval(tick, 200);
+      tick();
+    }
+
+    $("run80").onclick = async () => {
+      await post("/api/start", { n: 80, delay_ms: Number($("pace").value) });
+      startPoll();
+    };
+    $("run200").onclick = async () => {
+      await post("/api/start", { n: 200, delay_ms: Number($("pace").value) });
+      startPoll();
+    };
+    $("stop").onclick = () => post("/api/stop");
+    $("dupBtn").onclick = async () => {
+      if (!selectedId) return;
+      const out = await post("/api/duplicate", { case_id: selectedId });
+      $("dupOut").textContent = JSON.stringify(out, null, 2);
+    };
+    $("tabLive").onclick = () => {
+      $("livePane").classList.remove("hidden");
+      $("queuePane").classList.remove("hidden");
+      $("hardPane").classList.add("hidden");
+    };
+    $("tabHard").onclick = () => {
+      $("livePane").classList.add("hidden");
+      $("queuePane").classList.add("hidden");
+      $("hardPane").classList.remove("hidden");
+    };
+    $("loadHard").onclick = async () => {
+      const data = await (await fetch("/api/hard-cases")).json();
+      $("hardOut").innerHTML = `<p class="detail">${data.passed ? "ALL 10 MATCHED" : "MISMATCH"}</p>` +
+        data.cases.map(c => `
+          <div style="border-top:1px solid var(--line); padding:10px 0">
+            <strong>${c.id}</strong> <span class="pill ${c.match ? "AUTO" : "BLOCKED"}">${c.match ? "MATCH" : "FAIL"}</span>
+            <div class="detail">${c.description}</div>
+            <div class="detail">state ${c.actual.state_action} · money ${c.actual.financial_action}</div>
+          </div>
+        `).join("");
+    };
+
+    tick();
+  </script>
+</body>
+</html>

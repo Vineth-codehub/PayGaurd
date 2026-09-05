@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+payguard.db
+payguard.db-wal
+payguard.db-shm
+data/
+.DS_Store
