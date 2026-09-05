@@ -63,9 +63,3 @@ No third-party packages. Python 3.10+ is enough.
 - Refunds and escalations always need a human.
 - Customer outreach stops after 2 contacts, or after 1 contact if the customer is already unresponsive.
 - Unrecognized actions default to human review, not auto-execute.
-
-## Honest limits
-
-- Outcomes on the batch are simulated from a hidden recovery model, not live Razorpay settlements.
-- The gateway in `payguard_idempotency.py` is a ledger stand-in; the same idempotency key is what you would send to a real retry API.
-- Intervention choice is rule-based (domain priors), not a live LLM. The bar here is closed-loop recovery with measured money and an audit trail, not a chatbot.
